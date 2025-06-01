@@ -13,9 +13,12 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import { Register } from "@/components/auth/Register";
 import { CreateBooking } from "@/components/booking/CreateBooking";
 import GetBookings from "@/components/booking/GetBookings";
+import CatBreeds from "@/components/cat/CatBreeds";
 import { CreateCat } from "@/components/cat/CreateCat";
 import  DeleteCat from "@/components/cat/DeleteCat";
 import GetCats from "@/components/cat/GetCats";
+import UpdateCat from "@/components/cat/UpdateCat";
+import UploadCatAvatar from "@/components/cat/UploadCatAvatar";
 
 
 export default function HomePage() {
@@ -33,6 +36,9 @@ export default function HomePage() {
       <CreateBooking />
       <GetBookings />
       <DeleteCat />
+      <UpdateCat />
+      <UploadCatAvatar />
+      <CatBreeds />
 
     </div>
 
