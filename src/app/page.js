@@ -14,6 +14,7 @@ import { Register } from "@/components/auth/Register";
 import { CreateBooking } from "@/components/booking/CreateBooking";
 import GetBookings from "@/components/booking/GetBookings";
 import { CreateCat } from "@/components/cat/CreateCat";
+import  DeleteCat from "@/components/cat/DeleteCat";
 import GetCats from "@/components/cat/GetCats";
 
 
@@ -31,6 +32,8 @@ export default function HomePage() {
       <CreateCat />
       <CreateBooking />
       <GetBookings />
+      <DeleteCat />
+
     </div>
 
   )
