@@ -4,31 +4,32 @@ import { useQuery } from "@tanstack/react-query";
 
 export function useGetUser() {
   const fetchUser = async () => {
-    try {
-      // Lấy token từ localStorage (nếu lưu token ở đó) hoặc sử dụng cookie tự động gửi kèm
-      const token = localStorage.getItem("token");
-      
-      const res = await fetch("http://localhost:5000/api/auth/me", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        credentials: "include", // nếu backend dùng cookie
-      });
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch user");
-      }
-      return data.data.user;
-    } catch (err) {
-      console.error("Error fetching user:", err);
-      throw err;
+    if (!token) {
+      throw new Error("Access token is required");
     }
+
+    const res = await fetch("http://localhost:5000/api/auth/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include", // nếu server dùng cookie để xác thực
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch user");
+    }
+
+    return data.data.user;
   };
 
-  // Sử dụng React Query để fetch và cache thông tin user
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
   const {
     data: user,
     isLoading,
@@ -38,6 +39,7 @@ export function useGetUser() {
   } = useQuery({
     queryKey: ["currentUser"],
     queryFn: fetchUser,
+    enabled: !!token, // chỉ gọi khi có token
     retry: false,
   });
 

@@ -1,18 +1,16 @@
-// src/components/hooks/booking/useCancelBooking.jsx
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
- * Hook để hủy booking
- * Chỉ owner hoặc admin mới có thể hủy
- * Chỉ có thể hủy booking ở trạng thái 'pending' hoặc 'confirmed'
+ * Hook để hủy booking (admin hoặc chủ sở hữu)
+ * Chỉ có thể hủy khi trạng thái là 'pending' hoặc 'confirmed'
  */
 export function useCancelBooking() {
   const queryClient = useQueryClient();
 
-  const cancelBooking = async (bookingId) => {
-    try {
+  return useMutation({
+    mutationFn: async (bookingId) => {
       const token = localStorage.getItem("token");
 
       if (!bookingId) {
@@ -32,44 +30,25 @@ export function useCancelBooking() {
       if (!res.ok) {
         throw new Error(data.message || "Failed to cancel booking");
       }
-      
-      return data;
-    } catch (err) {
-      console.error("Error cancelling booking:", err);
-      throw err;
-    }
-  };
 
-  const {
-    mutate: cancelBookingMutation,
-    isLoading,
-    isError,
-    error,
-    isSuccess,
-  } = useMutation({
-    mutationFn: cancelBooking,
-    onSuccess: (data, bookingId) => {
-      // Invalidate bookings list để refresh data
-      queryClient.invalidateQueries(["bookings"]);
-      
-      // Remove specific booking from cache hoặc update status
-      queryClient.removeQueries(["booking", bookingId]);
-      
-      // Có thể invalidate rooms list để update availability
-      queryClient.invalidateQueries(["rooms"]);
-      
-      console.log("Booking cancelled successfully:", data);
+      // Trả về booking nếu có, hoặc null
+      return data.data?.booking || null;
     },
+
+    onSuccess: (booking, bookingId) => {
+      queryClient.invalidateQueries(["bookings"]);
+      queryClient.removeQueries(["booking", bookingId]);
+      queryClient.invalidateQueries(["rooms"]);
+
+      if (booking) {
+        console.log("✅ Booking cancelled:", booking);
+      } else {
+        console.log("✅ Booking cancelled (no booking object returned)");
+      }
+    },
+
     onError: (error) => {
-      console.error("Booking cancellation failed:", error);
+      console.error("❌ Booking cancellation failed:", error.message);
     },
   });
-
-  return { 
-    cancelBookingMutation, 
-    isLoading, 
-    isError, 
-    error, 
-    isSuccess 
-  };
 }

@@ -96,6 +96,9 @@ export default function HomePage() {
               <Link href="#contact" className="text-gray-700 hover:text-orange-600 transition-colors">
                 Contact
               </Link>
+              <Link href="news" className="text-gray-700 hover:text-orange-600 transition-colors">
+                News
+              </Link>
             </div>
 
             {/* Auth Buttons */}

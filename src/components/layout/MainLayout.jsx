@@ -1,7 +1,7 @@
 // src/components/layout/MainLayout.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -18,7 +18,8 @@ import {
   Utensils,
   Wrench,
   Star,
-  CreditCard
+  CreditCard,
+  Newspaper
 } from "lucide-react";
 import { useGetUser } from "../hooks/auth/useGetUser";
 import { useLogout } from "../hooks/auth/useLogout";
@@ -26,10 +27,23 @@ import { useLogout } from "../hooks/auth/useLogout";
 export function MainLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading } = useGetUser();
   const { logoutMutation } = useLogout();
+
+  // Fix hydration: Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle redirect in useEffect to avoid hydration mismatch
+  useEffect(() => {
+    if (!isLoading && !user && mounted) {
+      router.push("/auth");
+    }
+  }, [user, isLoading, mounted, router]);
 
   const navigation = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -40,6 +54,7 @@ export function MainLayout({ children }) {
     { name: "Services", href: "/dashboard/services", icon: Wrench },
     { name: "Reviews", href: "/dashboard/reviews", icon: Star },
     { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
+    { name: "News", href: "/dashboard/news", icon: Newspaper },
   ];
 
   const adminNavigation = [
@@ -51,6 +66,7 @@ export function MainLayout({ children }) {
     { name: "Manage Services", href: "/admin/services", icon: Wrench },
     { name: "Manage Reviews", href: "/admin/reviews", icon: Star },
     { name: "Payments", href: "/admin/payments", icon: CreditCard },
+    { name: "Manage News", href: "/admin/news", icon: Newspaper },
   ];
 
   const currentNavigation = user?.role === "admin" ? adminNavigation : navigation;
@@ -60,7 +76,8 @@ export function MainLayout({ children }) {
     setIsUserMenuOpen(false);
   };
 
-  if (isLoading) {
+  // Prevent hydration mismatch: Always render loading state initially
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -71,10 +88,16 @@ export function MainLayout({ children }) {
     );
   }
 
+  // Don't render anything if user is not authenticated (redirect will happen in useEffect)
   if (!user) {
-    // Redirect to auth page if not logged in
-    router.push("/auth");
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
